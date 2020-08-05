@@ -53,5 +53,6 @@ router.get('/tag-data', checkAuth, (req, res, next) => {
 	});
 });
 
+router.get('/monthly-spending', (req, res, next) => {});
 
 export default router;

@@ -7,24 +7,34 @@ require('dotenv').config();
 import User from '../models/user';
 
 router.post('/signup', ({ body }, res, next) => {
-	bcrypt.hash(body.password, 10).then((hash) => {
-		const user = new User({
-			firstName: body.firstName,
-			lastName: body.lastName,
-			email: body.email,
-			password: hash
-		});
-		user
-			.save()
-			.then((result) => {
-				res.status(200).json({
-					message: 'User Created',
-					result: result
-				});
-			})
-			.catch((err) => {
-				res.status(500).json({ error: err });
+	User.findOne({ email: body.email }).then((user) => {
+		if (user) {
+			console.log('user exists');
+			res.status(400).json({
+				errorType: 'email',
+				message: 'Email is taken'
 			});
+		} else if (!user) {
+			bcrypt.hash(body.password, 10).then((hash) => {
+				const user = new User({
+					firstName: body.firstName,
+					lastName: body.lastName,
+					email: body.email,
+					password: hash
+				});
+				user
+					.save()
+					.then((result) => {
+						res.status(200).json({
+							message: 'User Created',
+							result: result
+						});
+					})
+					.catch((err) => {
+						res.status(500).json({ error: err });
+					});
+			});
+		}
 	});
 });
 
@@ -35,7 +45,7 @@ router.post('/login', ({ body }, res, next) => {
 			console.log(user);
 			if (!user) {
 				return res.status(401).json({
-					message: 'User not found'
+					message: 'Email or Password incorrect'
 				});
 			}
 			fetchedUser = user;
@@ -45,7 +55,7 @@ router.post('/login', ({ body }, res, next) => {
 			console.log(result);
 			if (!result) {
 				return res.status(401).json({
-					message: 'Not authorized'
+					message: 'Email or Password incorrect'
 				});
 			}
 			const token = jwt.sign({ email: fetchedUser.email, userId: fetchedUser._id }, process.env.JWT_SECRET, {

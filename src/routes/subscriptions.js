@@ -30,8 +30,6 @@ router.get('', checkAuth, (req, res, next) => {
 	const pagesize = +req.query.pagesize;
 	const currentPage = +req.query.page;
 
-
-
 	const subscriptionQuery = Subscription.find({ owner: req.userData.userId });
 	let fetchedSubscriptions;
 
@@ -53,7 +51,6 @@ router.get('', checkAuth, (req, res, next) => {
 		});
 });
 
-
 router.get('/:id', checkAuth, (req, res, next) => {
 	Subscription.findOne({ _id: req.params.id, owner: req.userData.userId }).then((subscription) => {
 		if (subscription) {
@@ -74,14 +71,16 @@ router.put('/:id', checkAuth, (req, res, next) => {
 		startDate: req.body.startDate,
 		startDateString: req.body.startDateString,
 		billingCycle: req.body.billingCycle,
+		tags: req.body.tags,
 		owner: req.body.owner
 	});
 	Subscription.updateOne({ _id: req.params.id, owner: req.userData.userId }, subscription).then((result) => {
-		if (result.nModified > 0) {
+		if (result.ok > 0) {
+			console.log(result);
 			res.status(200).json({ message: 'Update Success' });
 			console.log(result);
 		} else {
-			res.status(401).json({ message: 'Not Authorized' });
+			res.status(401).json({ message: 'Subscription not saved' });
 		}
 	});
 });
