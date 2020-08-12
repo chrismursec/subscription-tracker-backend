@@ -4,7 +4,6 @@ import Subscription from '../models/subscription';
 const checkAuth = require('../middleware/check-auth');
 
 router.post('', checkAuth, (req, res, next) => {
-	console.log(req.userData);
 	const subscription = new Subscription({
 		title: req.body.title,
 		startDate: req.body.startDate,
@@ -14,8 +13,6 @@ router.post('', checkAuth, (req, res, next) => {
 		owner: req.userData.userId,
 		tags: req.body.tags
 	});
-
-	console.log(subscription);
 
 	subscription.save().then((createdSubscription) => {
 		res.status(200).json({
@@ -29,6 +26,7 @@ router.post('', checkAuth, (req, res, next) => {
 router.get('', checkAuth, (req, res, next) => {
 	const pagesize = +req.query.pagesize;
 	const currentPage = +req.query.page;
+	let sortOption = req.query.sort;
 
 	const subscriptionQuery = Subscription.find({ owner: req.userData.userId });
 	let fetchedSubscriptions;
@@ -37,7 +35,34 @@ router.get('', checkAuth, (req, res, next) => {
 		subscriptionQuery.skip(pagesize * (currentPage - 1)).limit(pagesize);
 	}
 
+	//a-z, old-new, low-high - ascending
+	// - z-a, new-old, high-low - descending
+
+	switch (sortOption) {
+		case 'titleasc':
+			sortOption = 'title';
+			break;
+		case 'titledesc':
+			sortOption = '-title';
+			break;
+		case 'startDateasc':
+			sortOption = 'startDate';
+			break;
+		case 'startDatedesc':
+			sortOption = '-startDate';
+			break;
+		case 'priceasc':
+			sortOption = 'price';
+			break;
+		case 'pricedesc':
+			sortOption = '-price';
+			break;
+		default:
+			sortOption = 'title';
+	}
+
 	subscriptionQuery
+		.sort(`field ${sortOption}`)
 		.then((documents) => {
 			fetchedSubscriptions = documents;
 			return Subscription.find({ owner: req.userData.userId }).countDocuments();
@@ -76,9 +101,7 @@ router.put('/:id', checkAuth, (req, res, next) => {
 	});
 	Subscription.updateOne({ _id: req.params.id, owner: req.userData.userId }, subscription).then((result) => {
 		if (result.ok > 0) {
-			console.log(result);
 			res.status(200).json({ message: 'Update Success' });
-			console.log(result);
 		} else {
 			res.status(401).json({ message: 'Subscription not saved' });
 		}

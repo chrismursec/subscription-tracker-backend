@@ -8,8 +8,9 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:server": "nodemon ./lib/server.js",
-    "build": "babel src -d lib"
+    "build": "babel -d ./build ./src -s",
+    "clean": "rm -rf lib && mkdir lib",
+    "start": "npm run build && node ./build/server.js"
   },
   "author": "",
   "license": "ISC",

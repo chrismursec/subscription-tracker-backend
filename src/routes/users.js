@@ -7,19 +7,18 @@ require('dotenv').config();
 import User from '../models/user';
 
 router.post('/signup', ({ body }, res, next) => {
-	User.findOne({ email: body.email }).then((user) => {
+	User.findOne({ username: body.username }).then((user) => {
 		if (user) {
-			console.log('user exists');
 			res.status(400).json({
-				errorType: 'email',
-				message: 'Email is taken'
+				errorType: 'username',
+				message: 'Username is taken'
 			});
 		} else if (!user) {
 			bcrypt.hash(body.password, 10).then((hash) => {
 				const user = new User({
 					firstName: body.firstName,
 					lastName: body.lastName,
-					email: body.email,
+					username: body.username,
 					password: hash
 				});
 				user
@@ -40,27 +39,29 @@ router.post('/signup', ({ body }, res, next) => {
 
 router.post('/login', ({ body }, res, next) => {
 	let fetchedUser;
-	User.findOne({ email: body.email })
+	User.findOne({ username: body.username })
 		.then((user) => {
-			console.log(user);
 			if (!user) {
 				return res.status(401).json({
-					message: 'Email or Password incorrect'
+					message: 'Username or Password incorrect'
 				});
 			}
 			fetchedUser = user;
 			return bcrypt.compare(body.password, user.password);
 		})
 		.then((result) => {
-			console.log(result);
 			if (!result) {
 				return res.status(401).json({
-					message: 'Email or Password incorrect'
+					message: 'Username or Password incorrect'
 				});
 			}
-			const token = jwt.sign({ email: fetchedUser.email, userId: fetchedUser._id }, process.env.JWT_SECRET, {
-				expiresIn: '1h'
-			});
+			const token = jwt.sign(
+				{ username: fetchedUser.username, userId: fetchedUser._id },
+				process.env.JWT_SECRET,
+				{
+					expiresIn: '1h'
+				}
+			);
 			res.status(200).json({
 				token: token,
 				expiresIn: 3600,
