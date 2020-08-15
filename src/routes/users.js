@@ -101,7 +101,6 @@ router.put('/password', checkAuth, (req, res, next) => {
 					message: 'Incorrect Password'
 				});
 			}
-
 			bcrypt.hash(req.body.newPassword, 10).then((newHashedPassword) => {
 				User.updateOne(
 					{ _id: req.userData.userId },
@@ -109,7 +108,6 @@ router.put('/password', checkAuth, (req, res, next) => {
 						password: newHashedPassword
 					}
 				).then((result) => {
-					console.log(result);
 					res.status(200).json({
 						message: 'Password Updated'
 					});

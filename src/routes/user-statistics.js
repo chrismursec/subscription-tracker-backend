@@ -53,6 +53,29 @@ router.get('/tag-data', checkAuth, (req, res, next) => {
 	});
 });
 
-router.get('/monthly-spending', (req, res, next) => {});
+router.get('/costs', checkAuth, (req, res, next) => {
+	Subscription.find({ owner: req.userData.userId })
+		.select('title price')
+		// .sort(`field price`)
+		.then((docs) => {
+			console.log(docs);
+
+			const titles = [];
+			const prices = [];
+
+			docs.map((doc) => {
+				titles.push(doc.title);
+				prices.push(doc.price);
+			});
+
+			console.log(titles);
+			console.log(prices);
+
+			return res.status(200).json({
+				subscriptionTitles: titles,
+				subscriptionPrices: prices
+			});
+		});
+});
 
 export default router;
